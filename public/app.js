@@ -1020,6 +1020,58 @@ const TUTORIAL_STEPS = [
   },
 ];
 
+const ATTACK_TUTORIAL_STEPS = [
+  {
+    tab: "rankings",
+    icon: "dir_recon_sweep",
+    badge: "ATTACK PLAYER TRAINING",
+    title: "Step 1 of 6: Pick a Target in World Rankings",
+    desc: "To attack another player or AI Commander, first inspect the Global Superpower Leaderboard. Look for a province with 'DEFCON Active' (you cannot attack provinces under UN Protection or members of your own Clan).",
+    tip: "💡 ACTION: Find a target near or below your Networth (such as Pripyat Exclusion Garrison or Ramstein Sector Alpha) and click '🎯 TARGET', or click 'NEXT STEP →'!",
+  },
+  {
+    tab: "war",
+    icon: "cov_spy_intel",
+    badge: "ATTACK PLAYER TRAINING",
+    title: "Step 2 of 6: Run a Reconnaissance Scan (1 Turn)",
+    desc: "Never attack blind! Before launching an assault, select your target in the War Room dropdown and click 'RECONNAISSANCE SCAN (1T)' under Covert Intelligence.",
+    tip: "💡 ACTION: Click 'RECONNAISSANCE SCAN (1T)' below. Your Field Intelligence Agents will reveal the target's exact Defense Rating, Power Grid %, SAM/Laser Turrets, and Treasury!",
+  },
+  {
+    tab: "military",
+    icon: "t80_tank",
+    badge: "ATTACK PLAYER TRAINING",
+    title: "Step 3 of 6: Build Superior Attack Power (≥ 1.05x Ratio)",
+    desc: "To win a Combined Arms Invasion, your Total Attack Rating should be at least 5%–15% higher than the enemy's Defense Rating shown in your Recon Dossier.",
+    tip: "💡 ACTION: Train offensive units here (RPG Shock Troopers, BTR-90 APCs, T-80U Tanks, Su-25T Aircraft, or Attack Submarines) until your Attack Rating beats the target's Defense!",
+  },
+  {
+    tab: "war",
+    icon: "cov_sabotage_power",
+    badge: "ATTACK PLAYER TRAINING",
+    title: "Step 4 of 6: Cripple Their Defenses with Power Sabotage (2 Turns)",
+    desc: "If the enemy has strong SAM Batteries, Radars, or Laser Turrets, use 'SABOTAGE POWER PLANTS (2T)' first! Destroying their Nuclear Power Plants triggers an enemy Brownout.",
+    tip: "💡 TACTICAL SECRET: An enemy in Brownout loses up to 75% of their turret defense and missile interception chance, making your main invasion much easier!",
+  },
+  {
+    tab: "war",
+    icon: "war_all_out",
+    badge: "ATTACK PLAYER TRAINING",
+    title: "Step 5 of 6: Launch Your Offensive or Nuclear Strike!",
+    desc: "Choose the right attack for your goal: (1) COMBINED ARMS INVASION (3T) captures 8%–16% of their Land & loots cash; (2) AIR RAID (2T) destroys 4–14 enemy buildings; (3) NAVAL BLITZ (2T) plunders 18%–30% cash; (4) LAUNCH MISSILE / TSAR BOMBA (2T) vaporizes bases from afar!",
+    tip: "💡 ACTION: Click 'COMBINED ARMS INVASION (3T)' (or Air Raid / Naval Blitz / Missile Launch) to strike your target now! Note: Launching an attack ends your own UN Rookie Protection.",
+  },
+  {
+    tab: "logs",
+    icon: "dir_battle_victory",
+    badge: "ATTACK PLAYER TRAINING",
+    title: "Step 6 of 6: Review Battle Reports & Claim Conquest Rewards!",
+    desc: "Every attack, spy mission, and nuclear detonation is logged here in Battle Reports with full casualty, land capture, and building destruction breakdowns.",
+    tip: "💡 REWARD: After winning your first attack, head to Command HQ and claim the 'Conquest Victory' Directive for +6 Bonus Turns, +$35,000, and +15 U-235!",
+  },
+];
+
+let activeTutorialList = TUTORIAL_STEPS;
 let currentTutorialStep = 0;
 
 function maybeAutoStartTutorial() {
@@ -1031,6 +1083,14 @@ function maybeAutoStartTutorial() {
 }
 
 window.startGuidedTutorial = function () {
+  activeTutorialList = TUTORIAL_STEPS;
+  currentTutorialStep = 0;
+  document.getElementById("tutorial-coach").classList.remove("hidden");
+  renderTutorialStep();
+};
+
+window.startAttackTutorial = function () {
+  activeTutorialList = ATTACK_TUTORIAL_STEPS;
   currentTutorialStep = 0;
   document.getElementById("tutorial-coach").classList.remove("hidden");
   renderTutorialStep();
@@ -1044,12 +1104,12 @@ window.closeGuidedTutorial = function () {
 };
 
 window.nextTutorialStep = function () {
-  if (currentTutorialStep < TUTORIAL_STEPS.length - 1) {
+  if (currentTutorialStep < activeTutorialList.length - 1) {
     currentTutorialStep += 1;
     renderTutorialStep();
   } else {
     window.closeGuidedTutorial();
-    showBanner("🎓 Basic Training Complete! You can click 'Redo Tutorial' or 'Basic Tutorial' anytime.");
+    showBanner("🎓 Training Walkthrough Complete! Use the static left menu anytime to reopen Tutorials.");
   }
 };
 
@@ -1061,14 +1121,15 @@ window.prevTutorialStep = function () {
 };
 
 function renderTutorialStep() {
-  const step = TUTORIAL_STEPS[currentTutorialStep];
+  const step = activeTutorialList[currentTutorialStep];
   if (!step) return;
 
   if (state.activeTab !== step.tab) {
     window.switchTab(step.tab);
   }
 
-  document.getElementById("tut-step-badge").textContent = `COMMANDER TRAINING // STEP ${currentTutorialStep + 1} OF ${TUTORIAL_STEPS.length}`;
+  const prefix = step.badge || "COMMANDER TRAINING";
+  document.getElementById("tut-step-badge").textContent = `${prefix} // STEP ${currentTutorialStep + 1} OF ${activeTutorialList.length}`;
   document.getElementById("tut-step-icon").innerHTML = window.getTbzIcon ? window.getTbzIcon(step.icon) : "";
   document.getElementById("tut-step-title").textContent = step.title;
   document.getElementById("tut-step-desc").textContent = step.desc;
@@ -1077,7 +1138,7 @@ function renderTutorialStep() {
   const prevBtn = document.getElementById("tut-prev-btn");
   const nextBtn = document.getElementById("tut-next-btn");
   prevBtn.disabled = currentTutorialStep === 0;
-  nextBtn.textContent = currentTutorialStep === TUTORIAL_STEPS.length - 1 ? "✓ FINISH TRAINING" : "NEXT STEP →";
+  nextBtn.textContent = currentTutorialStep === activeTutorialList.length - 1 ? "✓ FINISH TRAINING" : "NEXT STEP →";
 }
 
 /* FIELD MANUAL ENCYCLOPEDIA MODAL */
@@ -1113,6 +1174,67 @@ const MANUAL_CONTENT = {
           <div>
             <div class="manual-card-title">Step 4: Build a 2,000+ Attack Army</div>
             <div class="manual-card-desc">Research <em>Composite Armor Lv 2</em> or <em>Infantry Weapons Lv 2</em>, then train Tanks, APCs, and Shock Troopers to unlock <strong>Red Alert Mobilization (+5 Turns)</strong>.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `,
+  attack_guide: () => `
+    <div class="manual-section">
+      <h4>⚔️ HOW TO ATTACK ANOTHER PLAYER — STEP-BY-STEP COMBAT GUIDE</h4>
+      <p>Attacking rival Commanders and AI Provinces is how you capture Territory (<code>m²</code>), plunder Treasury funds (<code>$</code>), destroy enemy infrastructure, and earn the <strong>Conquest Victory (+6 Turns)</strong> reward. Here is the exact 6-step combat sequence:</p>
+      <div class="attack-step-list">
+        <div class="attack-step-item">
+          <div class="attack-step-num">1</div>
+          <div class="thumb-pic sm">${window.getTbzIcon("dir_recon_sweep")}</div>
+          <div>
+            <div class="manual-card-title">Select a Valid Target (World Rankings or War Room)</div>
+            <div class="manual-card-desc">Open <strong>🏆 World Rankings</strong> or <strong>🎯 War &amp; Covert Ops</strong>. Check three things before targeting a player: (1) Their status must be <strong>DEFCON Active</strong> (provinces under 🛡️ UN Rookie Protection cannot be attacked); (2) They must not be in your <strong>Clan</strong>; (3) Pick a target with similar or lower Networth when starting out (e.g., <em>Pripyat Exclusion Garrison</em> or <em>Ramstein Sector Alpha</em>).</div>
+          </div>
+        </div>
+        <div class="attack-step-item">
+          <div class="attack-step-num">2</div>
+          <div class="thumb-pic sm">${window.getTbzIcon("cov_spy_intel")}</div>
+          <div>
+            <div class="manual-card-title">Run a Reconnaissance Scan First (Costs 1 Turn)</div>
+            <div class="manual-card-desc">In the <strong>🎯 War Room</strong>, click <strong>RECONNAISSANCE SCAN (1T)</strong>. Your Field Intelligence Agents will infiltrate the enemy HQ and display a <strong>📂 Classified Recon Dossier</strong> showing their exact <em>Defense Rating</em>, <em>Power Grid Efficiency</em>, <em>Treasury Cash</em>, <em>SAM/Laser Turrets</em>, and <em>Armed Missiles</em>.</div>
+          </div>
+        </div>
+        <div class="attack-step-item">
+          <div class="attack-step-num">3</div>
+          <div class="thumb-pic sm">${window.getTbzIcon("cov_sabotage_power")}</div>
+          <div>
+            <div class="manual-card-title">Soften Enemy Turrets with Power Sabotage (Costs 2 Turns)</div>
+            <div class="manual-card-desc">Does the target have high Defense from <em>S-400 SAM Batteries</em>, <em>Radars</em>, or <em>Peresvet Laser Turrets</em>? Click <strong>SABOTAGE POWER PLANTS (2T)</strong>! Destroying their Nuclear Power Plants drops their Power Grid below 100%, crippling their turret defense and ABM missile interception before your main army strikes!</div>
+          </div>
+        </div>
+        <div class="attack-step-item">
+          <div class="attack-step-num">4</div>
+          <div class="thumb-pic sm">${window.getTbzIcon("t80_tank")}</div>
+          <div>
+            <div class="manual-card-title">Check Your Attack vs. Enemy Defense Ratio (Aim for ≥ 1.05x)</div>
+            <div class="manual-card-desc">Compare your <strong>Total Attack Rating</strong> (shown in green in the War Room) against the enemy's <strong>Defense Rating</strong> in their Recon Dossier. To guarantee victory (accounting for ±10% battlefield variance), build your Attack Rating to at least <strong>1.10x</strong> their Defense by training <em>RPG Shock Troopers, BTR-90 APCs, T-80U Tanks, Su-25T Aircraft,</em> or <em>Attack Submarines</em>.</div>
+          </div>
+        </div>
+        <div class="attack-step-item">
+          <div class="attack-step-num">5</div>
+          <div class="thumb-pic sm">${window.getTbzIcon("war_all_out")}</div>
+          <div>
+            <div class="manual-card-title">Choose the Right Offensive Mode</div>
+            <div class="manual-card-desc">
+              • <strong>🪖 Combined Arms Invasion (3 Turns)</strong>: Uses ALL forces (Infantry + Armor + Air + Navy). Victory captures <strong>8%–16% of the target's Land (m²)</strong> and loots 8%–15% of their cash!<br/>
+              • <strong>✈️ Strategic Air &amp; Artillery Raid (2 Turns)</strong>: Uses your <em>Aircraft + Vehicles</em> to bombard and destroy <strong>4–14 enemy buildings</strong>.<br/>
+              • <strong>⚓ Amphibious Naval Blitz (2 Turns)</strong>: Uses your <em>Navy + Infantry</em> to plunder <strong>18%–30% of the enemy's Treasury ($)</strong> and wreck coastal structures.<br/>
+              • <strong>☢️ Strategic Missile / Tsar Bomba Strike (2 Turns)</strong>: Launches an armed ballistic or nuclear warhead from your <em>Hardened Missile Silo</em>. Bypasses ground armies (tested only against enemy ABM Missile Interception %) to vaporize buildings, units, and scorch land!
+            </div>
+          </div>
+        </div>
+        <div class="attack-step-item">
+          <div class="attack-step-num">6</div>
+          <div class="thumb-pic sm">${window.getTbzIcon("dir_battle_victory")}</div>
+          <div>
+            <div class="manual-card-title">Claim Your Conquest Victory Directive (+6 Turns!)</div>
+            <div class="manual-card-desc">After winning your first offensive battle or nuclear strike, return to <strong>📡 Command HQ</strong> and click <strong>🎖️ CLAIM +6 TURNS &amp; REWARD</strong> on the <em>Conquest Victory</em> directive for <strong>+6 Turns, +$35,000, and +15 U-235</strong>!</div>
           </div>
         </div>
       </div>
@@ -1359,6 +1481,11 @@ window.switchManualTopic = function (topic, btnEl) {
 window.startGuidedTutorialFromModal = function () {
   window.closeManualModal();
   window.startGuidedTutorial();
+};
+
+window.startAttackTutorialFromModal = function () {
+  window.closeManualModal();
+  window.startAttackTutorial();
 };
 
 /* BOOTSTRAP */

@@ -110,8 +110,17 @@
       </div>
     </header>
 
+    <!-- STATIC MOBILE UTILITY MENU BAR -->
+    <div class="mobile-static-utility-bar">
+      <button class="btn btn-xs btn-amber" onclick="window.openManualModal()">📖 BASIC TUTORIAL &amp; MANUAL</button>
+      <button class="btn btn-xs btn-secondary" onclick="window.startAttackTutorial()">⚔️ ATTACK TUTORIAL</button>
+      <button class="btn btn-xs btn-secondary" onclick="window.startGuidedTutorial()">🎓 REDO TUTORIAL</button>
+      <button class="btn btn-xs btn-outline" onclick="window.refreshState()">↻ SYNC</button>
+      <button class="btn btn-xs btn-danger-outline" onclick="window.handleLogout()">LOGOUT</button>
+    </div>
+
     <div class="workspace-container">
-      <!-- DESKTOP SIDEBAR NAVIGATION -->
+      <!-- DESKTOP SIDEBAR NAVIGATION (STATIC / STICKY) -->
       <aside class="sidebar-nav">
         <div class="nav-section-label">COMMAND MODULES</div>
         <button class="nav-btn active" data-tab="overview" onclick="window.switchTab('overview')">
@@ -142,6 +151,7 @@
         <div class="sidebar-footer">
           <div id="protection-indicator" class="protection-banner hidden"></div>
           <button class="btn btn-sm btn-amber btn-block" onclick="window.openManualModal()">📖 BASIC TUTORIAL &amp; MANUAL</button>
+          <button class="btn btn-sm btn-secondary btn-block mt-8" onclick="window.startAttackTutorial()">⚔️ HOW TO ATTACK TUTORIAL</button>
           <button class="btn btn-sm btn-secondary btn-block mt-8" onclick="window.startGuidedTutorial()">🎓 REDO GUIDED TUTORIAL</button>
           <button class="btn btn-sm btn-outline btn-block mt-8" onclick="window.refreshState()">↻ SYNC TELEMETRY</button>
           <button class="btn btn-sm btn-danger-outline btn-block mt-8" onclick="window.handleLogout()">LOGOUT TERMINAL</button>
@@ -382,6 +392,10 @@
               <h2>STRATEGIC WAR ROOM &amp; ESPIONAGE</h2>
               <p>Select a target province to execute reconnaissance, sabotage their nuclear power grid, launch conventional invasions, or authorize nuclear strikes.</p>
             </div>
+            <div class="header-right-actions">
+              <button class="btn btn-sm btn-amber" onclick="window.startAttackTutorial()">⚔️ HOW TO ATTACK TUTORIAL</button>
+              <button class="btn btn-sm btn-secondary" onclick="window.openManualModal('attack_guide')">📖 COMBAT &amp; ATTACK GUIDE</button>
+            </div>
           </div>
 
           <div class="war-layout">
@@ -584,13 +598,15 @@
           <h3>📖 BASIC TUTORIAL &amp; FIELD MANUAL</h3>
         </div>
         <div class="modal-header-actions">
-          <button class="btn btn-xs btn-primary" onclick="window.startGuidedTutorialFromModal()">🎓 REDO INTERACTIVE TUTORIAL</button>
+          <button class="btn btn-xs btn-amber" onclick="window.startAttackTutorialFromModal()">⚔️ ATTACK PLAYER TUTORIAL</button>
+          <button class="btn btn-xs btn-primary" onclick="window.startGuidedTutorialFromModal()">🎓 REDO BASIC TUTORIAL</button>
           <button class="btn btn-xs btn-outline" onclick="window.closeManualModal()">✕ CLOSE</button>
         </div>
       </div>
 
       <div class="sub-tabs manual-tabs" id="manual-topic-tabs">
         <button class="sub-tab active" onclick="window.switchManualTopic('quickstart', this)">🚀 Quick Start</button>
+        <button class="sub-tab nuke-tab" onclick="window.switchManualTopic('attack_guide', this)">⚔️ How to Attack a Player</button>
         <button class="sub-tab" onclick="window.switchManualTopic('turns', this)">⚡ Turns &amp; Supply</button>
         <button class="sub-tab" onclick="window.switchManualTopic('base', this)">🏭 Base &amp; Power Grid</button>
         <button class="sub-tab" onclick="window.switchManualTopic('military', this)">🪖 Military &amp; Silos</button>

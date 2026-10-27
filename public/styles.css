@@ -376,14 +376,20 @@ select:focus {
 }
 
 .sidebar-nav {
-  width: 230px;
+  width: 245px;
   background: var(--bg-panel);
   border-right: 1px solid var(--border-col);
-  padding: 16px 12px;
+  padding: 14px 12px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
   flex-shrink: 0;
+  position: sticky;
+  top: 56px;
+  height: calc(100vh - 56px);
+  align-self: flex-start;
+  overflow-y: auto;
+  z-index: 90;
 }
 
 .nav-section-label {
@@ -923,12 +929,15 @@ select:focus {
 
 /* INTERACTIVE GUIDED TUTORIAL COACH */
 .tutorial-coach {
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.16) 0%, #131c28 100%);
+  position: sticky;
+  top: 66px;
+  z-index: 85;
+  background: linear-gradient(135deg, #1b1710 0%, #111a26 100%);
   border: 2px solid var(--amber);
   border-radius: 6px;
   padding: 14px 16px;
   margin-bottom: 18px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.65);
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.85);
 }
 
 .tutorial-coach-top {
@@ -1111,6 +1120,44 @@ select:focus {
   display: none;
 }
 
+.mobile-static-utility-bar {
+  display: none;
+}
+
+.attack-step-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.attack-step-item {
+  background: var(--bg-card);
+  border: 1px solid var(--border-col);
+  border-left: 4px solid var(--amber);
+  border-radius: 6px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.attack-step-num {
+  background: var(--amber);
+  color: #000;
+  font-family: var(--font-mono);
+  font-weight: 800;
+  font-size: 12px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
 @media (max-width: 900px) {
   .war-layout {
     grid-template-columns: 1fr;
@@ -1120,6 +1167,24 @@ select:focus {
 @media (max-width: 768px) {
   .sidebar-nav {
     display: none;
+  }
+
+  .mobile-static-utility-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 8px 12px;
+    background: var(--bg-panel);
+    border-bottom: 1px solid var(--border-col);
+    position: sticky;
+    top: 96px;
+    z-index: 95;
+  }
+
+  .mobile-static-utility-bar .btn {
+    flex: 1 1 auto;
+    padding: 6px 8px;
+    font-size: 10.5px;
   }
 
   .main-panel {
