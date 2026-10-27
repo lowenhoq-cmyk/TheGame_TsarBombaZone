@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0b0f14" />
+  <title>TSAR BOMBA ZONE // Strategic Text Warfare</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <!-- AUTHENTICATION SCREEN -->
+  <div id="auth-screen" class="auth-wrapper">
+    <div class="auth-card">
+      <div class="brand-header">
+        <div class="nuke-emblem">☢</div>
+        <div>
+          <div class="sub-code">STRATEGIC COMMAND NETWORK // DEFCON 2</div>
+          <h1>TSAR BOMBA ZONE</h1>
+          <p class="tagline">Multiplayer Tactical Text Warfare — Inspired by Classic Nukezone</p>
+        </div>
+      </div>
+
+      <div class="auth-tabs">
+        <button id="tab-register" class="auth-tab active" onclick="window.switchAuthTab('register')">ESTABLISH PROVINCE</button>
+        <button id="tab-login" class="auth-tab" onclick="window.switchAuthTab('login')">COMMANDER LOGIN</button>
+      </div>
+
+      <div id="auth-error" class="alert-box error hidden"></div>
+
+      <!-- REGISTER FORM -->
+      <form id="register-form" onsubmit="window.handleRegister(event)">
+        <div class="form-group">
+          <label>COMMANDER CALLSIGN (USERNAME)</label>
+          <input type="text" id="reg-username" placeholder="e.g. korolev_x" required minlength="3" maxlength="24" />
+        </div>
+        <div class="form-group">
+          <label>SECURITY PASSPHRASE</label>
+          <input type="password" id="reg-password" placeholder="••••••••" required minlength="4" />
+        </div>
+        <div class="form-group">
+          <label>PROVINCE / BASE DESIGNATION</label>
+          <input type="text" id="reg-province" placeholder="e.g. Severny Atomic Citadel" required minlength="3" maxlength="32" />
+        </div>
+        <div class="form-group">
+          <label>SELECT STRATEGIC DOCTRINE (FACTION)</label>
+          <div id="faction-selector" class="faction-grid"></div>
+          <input type="hidden" id="reg-faction" value="soviet_directorate" />
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">INITIALIZE COMMAND BUNKER</button>
+        <button type="button" class="btn btn-secondary btn-block mt-8" onclick="window.quickStartCommander()">
+          ⚡ INSTANT DEMO DEPLOYMENT (1-CLICK START)
+        </button>
+      </form>
+
+      <!-- LOGIN FORM -->
+      <form id="login-form" class="hidden" onsubmit="window.handleLogin(event)">
+        <div class="form-group">
+          <label>COMMANDER CALLSIGN</label>
+          <input type="text" id="login-username" placeholder="Enter callsign" required />
+        </div>
+        <div class="form-group">
+          <label>SECURITY PASSPHRASE</label>
+          <input type="password" id="login-password" placeholder="••••••••" required />
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">AUTHENTICATE TERMINAL</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MAIN GAME INTERFACE -->
+  <div id="game-screen" class="game-layout hidden">
+    <!-- STICKY TOP RESOURCE TELEMETRY BAR (WEB + MOBILE) -->
+    <header class="telemetry-bar">
+      <div class="telemetry-brand">
+        <span class="nuke-icon">☢</span>
+        <div class="prov-identity">
+          <div class="prov-title-row">
+            <span id="hud-clan-tag" class="clan-badge hidden"></span>
+            <strong id="hud-province-name">Loading...</strong>
+          </div>
+          <span id="hud-faction-name" class="hud-sub">Doctrine</span>
+        </div>
+      </div>
+
+      <div class="resource-strip">
+        <div class="res-pill turns-pill" title="Operational Turns (Regenerates every 1 hour)">
+          <span class="res-label">TURNS (<span id="hud-turn-timer">60:00</span>)</span>
+          <span class="res-val"><strong id="hud-turns">0</strong><small id="hud-max-turns">/50</small></span>
+        </div>
+        <div class="res-pill" title="Treasury Funds">
+          <span class="res-label">TREASURY</span>
+          <span class="res-val text-green" id="hud-money">$0</span>
+        </div>
+        <div class="res-pill" title="Weapons-Grade Uranium-235">
+          <span class="res-label">U-235</span>
+          <span class="res-val text-amber" id="hud-uranium">0</span>
+        </div>
+        <div class="res-pill" title="Free Land / Total Territory (m²)">
+          <span class="res-label">LAND (FREE/TOT)</span>
+          <span class="res-val"><span id="hud-free-land">0</span> / <span id="hud-land">0</span> m²</span>
+        </div>
+        <div class="res-pill" title="Power Grid Efficiency">
+          <span class="res-label">POWER GRID</span>
+          <span class="res-val" id="hud-power">100%</span>
+        </div>
+        <div class="res-pill" title="Province Networth">
+          <span class="res-label">NETWORTH</span>
+          <span class="res-val text-cyan" id="hud-networth">$0</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="workspace-container">
+      <!-- DESKTOP SIDEBAR NAVIGATION -->
+      <aside class="sidebar-nav">
+        <div class="nav-section-label">COMMAND MODULES</div>
+        <button class="nav-btn active" data-tab="overview" onclick="window.switchTab('overview')">
+          <span class="nav-icon">📡</span> Command HQ
+        </button>
+        <button class="nav-btn" data-tab="buildings" onclick="window.switchTab('buildings')">
+          <span class="nav-icon">🏭</span> Base &amp; Power Grid
+        </button>
+        <button class="nav-btn" data-tab="military" onclick="window.switchTab('military')">
+          <span class="nav-icon">🚀</span> Military &amp; Silos
+        </button>
+        <button class="nav-btn" data-tab="research" onclick="window.switchTab('research')">
+          <span class="nav-icon">🔬</span> Research Lab
+        </button>
+        <button class="nav-btn" data-tab="war" onclick="window.switchTab('war')">
+          <span class="nav-icon">🎯</span> War &amp; Covert Ops
+        </button>
+        <button class="nav-btn" data-tab="logs" onclick="window.switchTab('logs')">
+          <span class="nav-icon">📋</span> Battle Reports
+        </button>
+        <button class="nav-btn" data-tab="clans" onclick="window.switchTab('clans')">
+          <span class="nav-icon">🛡️</span> Clans &amp; Comms
+        </button>
+        <button class="nav-btn" data-tab="rankings" onclick="window.switchTab('rankings')">
+          <span class="nav-icon">🏆</span> World Rankings
+        </button>
+
+        <div class="sidebar-footer">
+          <div id="protection-indicator" class="protection-banner hidden"></div>
+          <button class="btn btn-sm btn-amber btn-block" onclick="window.openManualModal()">📖 BASIC TUTORIAL &amp; MANUAL</button>
+          <button class="btn btn-sm btn-secondary btn-block mt-8" onclick="window.startGuidedTutorial()">🎓 REDO GUIDED TUTORIAL</button>
+          <button class="btn btn-sm btn-outline btn-block mt-8" onclick="window.refreshState()">↻ SYNC TELEMETRY</button>
+          <button class="btn btn-sm btn-danger-outline btn-block mt-8" onclick="window.handleLogout()">LOGOUT TERMINAL</button>
+        </div>
+      </aside>
+
+      <!-- MAIN CONTENT AREA -->
+      <main class="main-panel">
+        <!-- INTERACTIVE GUIDED TUTORIAL COACH -->
+        <div id="tutorial-coach" class="tutorial-coach hidden">
+          <div class="tutorial-coach-top">
+            <div class="tutorial-step-badge" id="tut-step-badge">TRAINING BRIEFING // STEP 1 OF 7</div>
+            <button class="btn btn-xs btn-outline" onclick="window.closeGuidedTutorial()">✕ SKIP / CLOSE</button>
+          </div>
+          <div class="tutorial-coach-body">
+            <div class="thumb-pic" id="tut-step-icon"></div>
+            <div class="tutorial-coach-text">
+              <h3 id="tut-step-title">Welcome to Tsar Bomba Zone</h3>
+              <p id="tut-step-desc"></p>
+              <div id="tut-step-tip" class="tutorial-tip"></div>
+            </div>
+          </div>
+          <div class="tutorial-coach-actions">
+            <button class="btn btn-xs btn-outline" onclick="window.openManualModal()">📖 READ FULL MANUAL</button>
+            <div class="tutorial-nav-btns">
+              <button id="tut-prev-btn" class="btn btn-sm btn-secondary" onclick="window.prevTutorialStep()">← PREVIOUS</button>
+              <button id="tut-next-btn" class="btn btn-sm btn-primary" onclick="window.nextTutorialStep()">NEXT STEP →</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- STATUS TOAST BANNER -->
+        <div id="action-banner" class="action-banner hidden"></div>
+
+        <!-- TAB 1: COMMAND HQ / OVERVIEW -->
+        <section id="tab-view-overview" class="tab-view">
+          <div class="panel-header">
+            <div>
+              <h2>COMMAND BUNKER TELEMETRY</h2>
+              <p>Turns regenerate every <strong>1 Hour</strong> (<span id="overview-regen-rate">+7 Turns/hr</span>). Complete Tactical Directives, build Command Bunkers, or run Logistics Convoys to earn extra turns!</p>
+            </div>
+            <div class="header-right-actions">
+              <button class="btn btn-sm btn-amber" onclick="window.openManualModal()">📖 BASIC TUTORIAL</button>
+              <button class="btn btn-sm btn-secondary" onclick="window.startGuidedTutorial()">🎓 REDO TUTORIAL</button>
+              <div class="res-pill turns-pill">
+                <span class="res-label">NEXT HOURLY SUPPLY</span>
+                <span class="res-val text-amber" id="overview-next-tick">+7T in 60m 00s</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- QUICK TURN OPERATIONS -->
+          <div class="card mb-16">
+            <div class="card-header">
+              <span>⚡ DIRECT TURN OPERATIONS</span>
+              <div class="turn-qty-selector">
+                <span>Spend Turns:</span>
+                <button class="qty-btn active" onclick="window.setTurnQty(1, this)">1</button>
+                <button class="qty-btn" onclick="window.setTurnQty(2, this)">2</button>
+                <button class="qty-btn" onclick="window.setTurnQty(5, this)">5</button>
+                <button class="qty-btn" onclick="window.setTurnQty(10, this)">10</button>
+              </div>
+            </div>
+            <div class="ops-grid">
+              <div class="op-box">
+                <div>
+                  <div class="op-header-row">
+                    <div class="thumb-pic" data-icon="op_explore"></div>
+                    <div>
+                      <div class="op-title">ANNEX TERRITORY</div>
+                      <p class="op-desc">Dispatch armed surveyors to claim uncontested borderland for new structures.</p>
+                    </div>
+                  </div>
+                  <div class="op-meta">Yield: ~14–22 m² / turn</div>
+                </div>
+                <button class="btn btn-primary btn-block" onclick="window.executeTurnOp('explore')">
+                  EXPLORE LAND (<span class="turn-qty-label">1</span>T)
+                </button>
+              </div>
+              <div class="op-box">
+                <div>
+                  <div class="op-header-row">
+                    <div class="thumb-pic" data-icon="op_work"></div>
+                    <div>
+                      <div class="op-title">INDUSTRIAL SHIFT</div>
+                      <p class="op-desc">Run Industrial Complexes at maximum output to mint treasury funds.</p>
+                    </div>
+                  </div>
+                  <div class="op-meta" id="overview-cash-rate">Yield: $0 / turn</div>
+                </div>
+                <button class="btn btn-primary btn-block" onclick="window.executeTurnOp('work')">
+                  PRODUCE CASH (<span class="turn-qty-label">1</span>T)
+                </button>
+              </div>
+              <div class="op-box">
+                <div>
+                  <div class="op-header-row">
+                    <div class="thumb-pic" data-icon="op_mine_uranium"></div>
+                    <div>
+                      <div class="op-title">ENRICH URANIUM-235</div>
+                      <p class="op-desc">Operate centrifuge cascades to refine fissile material for warheads &amp; tech.</p>
+                    </div>
+                  </div>
+                  <div class="op-meta" id="overview-uranium-rate">Yield: 0 U-235 / turn</div>
+                </div>
+                <button class="btn btn-primary btn-block" onclick="window.executeTurnOp('mine_uranium')">
+                  ENRICH U-235 (<span class="turn-qty-label">1</span>T)
+                </button>
+              </div>
+              <div class="op-box">
+                <div>
+                  <div class="op-header-row">
+                    <div class="thumb-pic" data-icon="op_morale"></div>
+                    <div>
+                      <div class="op-title">RESTORE MORALE</div>
+                      <p class="op-desc">Broadcast state propaganda and hold military parades (+12% Morale / turn).</p>
+                    </div>
+                  </div>
+                  <div class="op-meta" id="overview-morale-val">Current Morale: 100%</div>
+                </div>
+                <button class="btn btn-secondary btn-block" onclick="window.executeTurnOp('morale_boost')">
+                  BOOST MORALE (<span class="turn-qty-label">1</span>T)
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- EARN BONUS TURNS: TACTICAL DIRECTIVES & LOGISTICS OVERTIME -->
+          <div class="card mb-16">
+            <div class="card-header">
+              <span>🎖️ EARN OPERATIONAL TURNS — TACTICAL DIRECTIVES &amp; OVERTIME</span>
+              <span class="text-muted" style="font-size:11px">Complete objectives or convert surplus resources into extra turns</span>
+            </div>
+            <div class="war-btn-grid mb-16">
+              <button class="btn btn-amber war-btn-with-pic" onclick="window.spendTurns('logistics_convoy', 1)">
+                <div class="thumb-pic sm" data-icon="op_logistics"></div>
+                <div class="war-btn-text">
+                  <span>EMERGENCY LOGISTICS CONVOY (+4 TURNS)</span>
+                  <small id="logistics-cost-label">Spend $18,000 Treasury to mobilize +4 Turns</small>
+                </div>
+              </button>
+              <button class="btn btn-secondary war-btn-with-pic" onclick="window.spendTurns('reactor_overdrive', 1)">
+                <div class="thumb-pic sm" data-icon="op_reactor"></div>
+                <div class="war-btn-text">
+                  <span>COMMAND REACTOR OVERDRIVE (+5 TURNS)</span>
+                  <small>Burn 12 U-235 canisters to supercharge +5 Turns</small>
+                </div>
+              </button>
+            </div>
+            <div id="directives-list" class="ops-grid"></div>
+          </div>
+
+          <!-- TELEMETRY SUMMARY GRID -->
+          <div class="grid-2col">
+            <div class="card">
+              <div class="card-header">⚔️ COMBAT &amp; STRATEGIC READINESS</div>
+              <div class="stat-list" id="overview-combat-stats"></div>
+            </div>
+            <div class="card">
+              <div class="card-header">⚡ POWER GRID &amp; ECONOMY</div>
+              <div class="stat-list" id="overview-economy-stats"></div>
+            </div>
+          </div>
+
+          <div class="card mt-16">
+            <div class="card-header">
+              <span>📡 RECENT SITUATION REPORTS</span>
+              <button class="btn btn-xs btn-outline" onclick="window.switchTab('logs')">VIEW ALL LOGS →</button>
+            </div>
+            <div id="overview-recent-logs" class="log-list"></div>
+          </div>
+        </section>
+
+        <!-- TAB 2: BASE & BUILDINGS -->
+        <section id="tab-view-buildings" class="tab-view hidden">
+          <div class="panel-header">
+            <div>
+              <h2>BASE INFRASTRUCTURE &amp; POWER GRID</h2>
+              <p>Construct up to 5 buildings per turn. Building extra <strong>Command Bunkers</strong> increases your Max Turn cap (+2 each) and hourly Turn regeneration!</p>
+            </div>
+            <div class="qty-bar">
+              <span>Batch Qty:</span>
+              <button class="qty-btn active" onclick="window.setBuildQty(1, this)">1x</button>
+              <button class="qty-btn" onclick="window.setBuildQty(5, this)">5x</button>
+              <button class="qty-btn" onclick="window.setBuildQty(10, this)">10x</button>
+              <button class="qty-btn" onclick="window.setBuildQty(25, this)">25x</button>
+            </div>
+          </div>
+
+          <div id="power-alert-banner" class="power-banner mb-16"></div>
+          <div id="buildings-grid" class="item-grid"></div>
+        </section>
+
+        <!-- TAB 3: MILITARY & SILOS -->
+        <section id="tab-view-military" class="tab-view hidden">
+          <div class="panel-header">
+            <div>
+              <h2>MILITARY PRODUCTION &amp; NUCLEAR SILOS</h2>
+              <p>Train combined-arms divisions, recruit intelligence operatives, and assemble ballistic missiles including the 50-Megaton AN602 Tsar Bomba.</p>
+            </div>
+            <div class="qty-bar">
+              <span>Batch Qty:</span>
+              <button class="qty-btn active" onclick="window.setTrainQty(1, this)">1x</button>
+              <button class="qty-btn" onclick="window.setTrainQty(10, this)">10x</button>
+              <button class="qty-btn" onclick="window.setTrainQty(50, this)">50x</button>
+              <button class="qty-btn" onclick="window.setTrainQty(100, this)">100x</button>
+            </div>
+          </div>
+
+          <div class="sub-tabs" id="military-cat-tabs">
+            <button class="sub-tab active" onclick="window.filterMilitary('ALL', this)">ALL FORCES</button>
+            <button class="sub-tab" onclick="window.filterMilitary('Infantry', this)">INFANTRY</button>
+            <button class="sub-tab" onclick="window.filterMilitary('Vehicles', this)">ARMOR</button>
+            <button class="sub-tab" onclick="window.filterMilitary('Aircraft', this)">AIR FORCE</button>
+            <button class="sub-tab" onclick="window.filterMilitary('Navy', this)">NAVY</button>
+            <button class="sub-tab" onclick="window.filterMilitary('Covert', this)">COVERT</button>
+            <button class="sub-tab nuke-tab" onclick="window.filterMilitary('Missiles', this)">☢️ MISSILES &amp; TSAR BOMBA</button>
+          </div>
+
+          <div id="military-grid" class="item-grid"></div>
+        </section>
+
+        <!-- TAB 4: RESEARCH LAB -->
+        <section id="tab-view-research" class="tab-view hidden">
+          <div class="panel-header">
+            <div>
+              <h2>SCIENTIFIC RESEARCH DIRECTORATE</h2>
+              <p>Construct more Weapons Research Labs to reduce turn time. Unlocking Rocketry Lv 6 + Thermonuclear Physics Lv 5 unlocks the Tsar Bomba.</p>
+            </div>
+          </div>
+          <div id="research-grid" class="item-grid"></div>
+        </section>
+
+        <!-- TAB 5: WAR ROOM & COVERT OPS -->
+        <section id="tab-view-war" class="tab-view hidden">
+          <div class="panel-header">
+            <div>
+              <h2>STRATEGIC WAR ROOM &amp; ESPIONAGE</h2>
+              <p>Select a target province to execute reconnaissance, sabotage their nuclear power grid, launch conventional invasions, or authorize nuclear strikes.</p>
+            </div>
+          </div>
+
+          <div class="war-layout">
+            <div class="card">
+              <div class="card-header">🎯 SELECT TARGET PROVINCE</div>
+              <div class="form-group">
+                <label>TARGET COMMANDER / PROVINCE</label>
+                <select id="war-target-select" onchange="window.onTargetChange()"></select>
+              </div>
+
+              <div id="target-summary-box" class="target-box"></div>
+
+              <!-- CACHED SPY INTEL -->
+              <div id="target-intel-box" class="intel-box mt-12"></div>
+            </div>
+
+            <div class="war-actions-col">
+              <!-- COVERT OPERATIONS -->
+              <div class="card mb-16">
+                <div class="card-header">🕵️ COVERT INTELLIGENCE &amp; SABOTAGE (1–2 TURNS)</div>
+                <p class="card-sub">Your Spy Rating: <strong id="war-spy-power">0</strong> | Active Agents: <strong id="war-agent-count">0</strong></p>
+                <div class="war-btn-grid">
+                  <button class="btn btn-secondary war-btn-with-pic" onclick="window.launchCovert('spy_intel')">
+                    <div class="thumb-pic sm" data-icon="cov_spy_intel"></div>
+                    <div class="war-btn-text">
+                      <span>RECONNAISSANCE SCAN (1T)</span>
+                      <small>Reveal exact units, power grid, &amp; silos</small>
+                    </div>
+                  </button>
+                  <button class="btn btn-secondary war-btn-with-pic" onclick="window.launchCovert('sabotage_power')">
+                    <div class="thumb-pic sm" data-icon="cov_sabotage_power"></div>
+                    <div class="war-btn-text">
+                      <span>SABOTAGE POWER PLANTS (2T)</span>
+                      <small>Destroy reactors to disable enemy turrets</small>
+                    </div>
+                  </button>
+                  <button class="btn btn-secondary war-btn-with-pic" onclick="window.launchCovert('steal_cash')">
+                    <div class="thumb-pic sm" data-icon="cov_steal_cash"></div>
+                    <div class="war-btn-text">
+                      <span>SIPHON TREASURY (2T)</span>
+                      <small>Steal 10%–20% of target's cash</small>
+                    </div>
+                  </button>
+                  <button class="btn btn-secondary war-btn-with-pic" onclick="window.launchCovert('sabotage_silos')">
+                    <div class="thumb-pic sm" data-icon="cov_sabotage_silos"></div>
+                    <div class="war-btn-text">
+                      <span>SABOTAGE MISSILE SILOS (2T)</span>
+                      <small>Destroy an armed missile on the pad</small>
+                    </div>
+                  </button>
+                </div>
+              </div>
+
+              <!-- CONVENTIONAL WARFARE -->
+              <div class="card mb-16">
+                <div class="card-header">⚔️ CONVENTIONAL MILITARY OFFENSIVES</div>
+                <p class="card-sub">Your Total Attack Rating: <strong id="war-atk-power" class="text-green">0</strong></p>
+                <div class="war-btn-grid">
+                  <button class="btn btn-primary war-btn-with-pic" onclick="window.launchAttack('conventional', 'all_out')">
+                    <div class="thumb-pic sm" data-icon="war_all_out"></div>
+                    <div class="war-btn-text">
+                      <span>COMBINED ARMS INVASION (3T)</span>
+                      <small>Full assault — Captures 8%–16% Land &amp; Cash</small>
+                    </div>
+                  </button>
+                  <button class="btn btn-primary war-btn-with-pic" onclick="window.launchAttack('conventional', 'air_raid')">
+                    <div class="thumb-pic sm" data-icon="war_air_raid"></div>
+                    <div class="war-btn-text">
+                      <span>STRATEGIC AIR &amp; ARTILLERY RAID (2T)</span>
+                      <small>Bombards and destroys enemy buildings</small>
+                    </div>
+                  </button>
+                  <button class="btn btn-primary war-btn-with-pic" onclick="window.launchAttack('conventional', 'naval_blitz')">
+                    <div class="thumb-pic sm" data-icon="war_naval_blitz"></div>
+                    <div class="war-btn-text">
+                      <span>AMPHIBIOUS NAVAL BLITZ (2T)</span>
+                      <small>Plunders 18%–30% treasury &amp; coastal structures</small>
+                    </div>
+                  </button>
+                </div>
+              </div>
+
+              <!-- STRATEGIC MISSILE & NUCLEAR LAUNCH -->
+              <div class="card nuke-card">
+                <div class="card-header">☢️ STRATEGIC MISSILE &amp; THERMONUCLEAR COMMAND (2 TURNS)</div>
+                <p class="card-sub">Requires an operational Hardened Missile Silo. Destroys structures, vaporizes units, and scorches land.</p>
+                <div id="war-missile-buttons" class="war-btn-grid"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB 6: BATTLE & ESPIONAGE LOGS -->
+        <section id="tab-view-logs" class="tab-view hidden">
+          <div class="panel-header">
+            <div>
+              <h2>COMBAT &amp; INTELLIGENCE LOGS</h2>
+              <p>Complete archive of outgoing strikes, incoming attacks, nuclear detonations, and covert operations.</p>
+            </div>
+          </div>
+          <div id="full-logs-list" class="log-list"></div>
+        </section>
+
+        <!-- TAB 7: CLANS & ALLIANCES -->
+        <section id="tab-view-clans" class="tab-view hidden">
+          <div class="panel-header">
+            <div>
+              <h2>STRATEGIC CLANS &amp; ALLIANCE COMMS</h2>
+              <p>Clan members cannot attack each other and share an encrypted tactical communications channel.</p>
+            </div>
+          </div>
+          <div class="grid-2col">
+            <div class="card">
+              <div class="card-header">🛡️ ACTIVE ALLIANCES</div>
+              <div id="clans-list-container"></div>
+
+              <div id="create-clan-box" class="mt-16 pt-12 border-top">
+                <h4>FOUND NEW ALLIANCE ($25,000 CHARTER)</h4>
+                <form onsubmit="window.handleCreateClan(event)" class="mt-8">
+                  <div class="form-row">
+                    <input type="text" id="clan-tag-input" placeholder="TAG (e.g. USSR)" maxlength="5" minlength="2" required style="width:110px" />
+                    <input type="text" id="clan-name-input" placeholder="Alliance Name" maxlength="30" minlength="3" required />
+                  </div>
+                  <input type="text" id="clan-desc-input" placeholder="Alliance motto / doctrine" maxlength="100" class="mt-8" />
+                  <button type="submit" class="btn btn-primary btn-sm mt-8">ESTABLISH CLAN ($25,000)</button>
+                </form>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <span>💬 ENCRYPTED CLAN COMMS</span>
+                <button id="leave-clan-btn" class="btn btn-xs btn-danger-outline hidden" onclick="window.handleLeaveClan()">LEAVE CLAN</button>
+              </div>
+              <div id="clan-comms-box"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB 8: WORLD RANKINGS -->
+        <section id="tab-view-rankings" class="tab-view hidden">
+          <div class="panel-header">
+            <div>
+              <h2>GLOBAL SUPERPOWER LEADERBOARD</h2>
+              <p>Live rankings of all active player and AI provinces ordered by Networth ($NW).</p>
+            </div>
+          </div>
+          <div class="card table-responsive">
+            <table class="nuke-table">
+              <thead>
+                <tr>
+                  <th>RANK</th>
+                  <th>PROVINCE</th>
+                  <th>DOCTRINE</th>
+                  <th>LAND</th>
+                  <th>NETWORTH</th>
+                  <th>STATUS</th>
+                  <th>ACTION</th>
+                </tr>
+              </thead>
+              <tbody id="leaderboard-tbody"></tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <!-- STICKY MOBILE BOTTOM NAVIGATION BAR -->
+    <nav class="mobile-bottom-nav">
+      <button class="mob-nav-btn active" data-tab="overview" onclick="window.switchTab('overview')">
+        <span>📡</span><small>HQ</small>
+      </button>
+      <button class="mob-nav-btn" data-tab="buildings" onclick="window.switchTab('buildings')">
+        <span>🏭</span><small>Base</small>
+      </button>
+      <button class="mob-nav-btn" data-tab="military" onclick="window.switchTab('military')">
+        <span>🚀</span><small>Forces</small>
+      </button>
+      <button class="mob-nav-btn" data-tab="research" onclick="window.switchTab('research')">
+        <span>🔬</span><small>Tech</small>
+      </button>
+      <button class="mob-nav-btn" data-tab="war" onclick="window.switchTab('war')">
+        <span>🎯</span><small>War</small>
+      </button>
+      <button class="mob-nav-btn" data-tab="rankings" onclick="window.switchTab('rankings')">
+        <span>🏆</span><small>Ranks</small>
+      </button>
+      <button class="mob-nav-btn" data-tab="clans" onclick="window.switchTab('clans')">
+        <span>🛡️</span><small>Clans</small>
+      </button>
+    </nav>
+  </div>
+
+  <!-- BASIC TUTORIAL & FIELD MANUAL MODAL -->
+  <div id="manual-modal" class="modal-backdrop hidden" onclick="window.handleManualBackdropClick(event)">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div>
+          <div class="sub-code">STRATEGIC COMMAND ENCYCLOPEDIA</div>
+          <h3>📖 BASIC TUTORIAL &amp; FIELD MANUAL</h3>
+        </div>
+        <div class="modal-header-actions">
+          <button class="btn btn-xs btn-primary" onclick="window.startGuidedTutorialFromModal()">🎓 REDO INTERACTIVE TUTORIAL</button>
+          <button class="btn btn-xs btn-outline" onclick="window.closeManualModal()">✕ CLOSE</button>
+        </div>
+      </div>
+
+      <div class="sub-tabs manual-tabs" id="manual-topic-tabs">
+        <button class="sub-tab active" onclick="window.switchManualTopic('quickstart', this)">🚀 Quick Start</button>
+        <button class="sub-tab" onclick="window.switchManualTopic('turns', this)">⚡ Turns &amp; Supply</button>
+        <button class="sub-tab" onclick="window.switchManualTopic('base', this)">🏭 Base &amp; Power Grid</button>
+        <button class="sub-tab" onclick="window.switchManualTopic('military', this)">🪖 Military &amp; Silos</button>
+        <button class="sub-tab" onclick="window.switchManualTopic('research', this)">🔬 Research &amp; Tsar Bomba</button>
+        <button class="sub-tab" onclick="window.switchManualTopic('war', this)">🎯 War &amp; Covert Ops</button>
+        <button class="sub-tab" onclick="window.switchManualTopic('clans', this)">🛡️ Doctrines &amp; Clans</button>
+      </div>
+
+      <div id="manual-content-body" class="manual-body"></div>
+    </div>
+  </div>
+
+  <script src="/icons.js"></script>
+  <script src="/app.js"></script>
+</body>
+</html>
+
